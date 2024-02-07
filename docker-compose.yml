@@ -19,9 +19,13 @@ services:
     ports:
       - 5432:5432
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_POSTGRES_DB}
+      POSTGRES_USER_FILE: /run/secrets/db_root_username
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_root_password
+      POSTGRES_DB_FILE: /run/secrets/db_name
+    secrets:
+      - db_name
+      - db_root_username
+      - db_root_password
 
   postgres-backup:
     <<: *x-default
@@ -34,14 +38,26 @@ services:
       - postgres
     environment:
       - POSTGRES_HOST=postgres
-      - POSTGRES_DB=${POSTGRES_POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB_FILE=/run/secrets/db_name
+      - POSTGRES_USER_FILE=/run/secrets/db_root_username
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_root_password
       - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
       - SCHEDULE=@daily
       - BACKUP_KEEP_DAYS=7
       - BACKUP_KEEP_WEEKS=4
       - BACKUP_KEEP_MONTHS=6
+    secrets:
+      - db_name
+      - db_root_username
+      - db_root_password
+
+secrets:
+  db_name:
+    file: db_name.txt
+  db_root_username:
+    file: db_root_username.txt
+  db_root_password:
+    file: db_root_password.txt
 
 volumes:
   postgres_data:
